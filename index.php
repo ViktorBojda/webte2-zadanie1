@@ -3,7 +3,21 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+session_start();
+
+require_once('vendor/autoload.php');
 require_once('config.php');
+
+$client = new Google\Client();
+$client->setAuthConfig('client_secret.json');
+
+$redirect_uri = "https://site60.webte.fei.stuba.sk/webte2-zadanie1/redirect.php";
+$client->setRedirectUri($redirect_uri);
+
+$client->addScope("email");
+$client->addScope("profile");
+
+$auth_url = $client->createAuthUrl();
 
 try {
     $pdo = new PDO("mysql:host=$hostname;dbname=$dbname", $username, $password);
@@ -54,6 +68,61 @@ try {
                     aria-controls="nav-toggle" aria-expanded="false" aria-label="Zobraz menu">
                         <span class="navbar-toggler-icon"></span>
                     </button>
+
+                    <div class="d-flex">
+                        <?php
+                        if (isset($_SESSION['access_token']) && $_SESSION['access_token']) {
+                            echo '
+                                <span class="align-self-center px-3 text-white">Vitaj ' . $_SESSION['name'] . '</span>
+                                <a href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="#adb5bd" class="bi bi-person-circle" viewBox="0 0 16 16">
+                                        <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                                        <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+                                    </svg>
+                                </a>
+
+                                <div class="dropdown">
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="#">Action</a></li>
+                                        <li><a class="dropdown-item" href="#">Another action</a></li>
+                                        <li><a class="dropdown-item" href="logout.php">Odhlásiť sa</a></li>
+                                    </ul>
+                                </div>';
+                        }
+                        else {
+                            echo '
+                                <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="#adb5bd" class="bi bi-person-circle" viewBox="0 0 16 16">
+                                        <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                                        <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+                                    </svg>
+                                </a>
+
+                                <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header border-0 pb-0">
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="border-bottom">
+                                                    <h1 class="modal-title fs-5" id="loginModalLabel">Prihlásenie</h1>
+                                                </div>
+                                                <div>
+                                                    <h2 class="fs-6">Prihlásiť cez</h2>
+                                                    <a href="' . filter_var($auth_url, FILTER_SANITIZE_URL) . '">
+                                                        <img class="mx-auto d-block" src="images/google-icon.png" alt="Prihlásenie cez Google" width="32" height="32">
+                                                    </a>
+                                                </div>
+
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>';
+                        } 
+                        ?>
+                    </div>
                 </div>
             </nav>
             <div class="collapse" id="nav-toggle">

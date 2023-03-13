@@ -20,7 +20,7 @@ $(function() {
                 $fullName.on("click", function() {
                     location.href = `./detail.php?id=${data[0]}`;
                 });
-                }
+            }
         }
     );
 });
