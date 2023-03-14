@@ -3,20 +3,10 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+session_start();
+
 require_once('config.php');
-require_once('vendor/autoload.php');
-require_once('PHPGangsta/GoogleAuthenticator.php');
-
-$client = new Google\Client();
-$client->setAuthConfig('client_secret.json');
-
-$redirect_uri = "https://site60.webte.fei.stuba.sk/webte2-zadanie1/redirect.php";
-$client->setRedirectUri($redirect_uri);
-
-$client->addScope("email");
-$client->addScope("profile");
-
-$auth_url = $client->createAuthUrl();
+require_once('login.php');
 
 function checkEmpty($field) {
     if (empty(trim($field)))
@@ -63,11 +53,7 @@ function userExists($db, $login, $email) {
 }
 
 
-
 if ($_SERVER['REQUEST_METHOD'] == "POST") {
-    $pdo = new PDO("mysql:host=$hostname;dbname=$dbname", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
     $err_msg = "";
 
     $login = $_POST['login'];
@@ -173,14 +159,47 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                                         <div class="modal-header border-0 pb-0">
                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                         </div>
+
                                         <div class="modal-body">
                                             <div class="border-bottom">
-                                                <h1 class="modal-title fs-5" id="loginModalLabel">Prihlásenie</h1>
-                                                <a href="registration.php" class="btn btn-success d-block" role="button">Vytvoriť nový účet</a>
-                                                
+                                                <h1 class="modal-title fs-5 mb-3" id="loginModalLabel">Prihlásenie</h1>
+
+                                                <form action="" method="post">
+                                                    <div class="row mb-3">
+                                                        <div class="col-12">
+                                                            <label for="login" class="form-label">Prihlasovacie meno alebo email</label><br>
+                                                            <input type="text" class="form-control" name="identifier" id="identifier" required>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row mb-3">
+                                                        <div class="col-12">
+                                                            <label for="password" class="form-label">Heslo</label><br>
+                                                            <input type="password" class="form-control" name="password" id="password" required>
+                                                        </div>
+                                                    </div>
+                                    
+                                                    <div class="row mb-3">
+                                                        <div class="col-12">
+                                                            <label for="email" class="form-label">2FA Kód</label><br>
+                                                            <input type="number" class="form-control" name="2fa_code" id="2fa_code" required>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="row mb-3">
+                                                        <div class="col-12 col-sm-6 mb-3 mb-sm-0 d-grid">
+                                                            <button type="submit" class="btn btn-success btn-lg">Prihlásiť sa</button>
+                                                        </div>
+
+                                                        <div class="col-12 col-sm-6 d-grid">
+                                                            <a href="registration.php" class="btn btn-primary btn-lg d-flex justify-content-center align-items-center" role="button">Vytvoriť nový účet</a>
+                                                        </div>
+                                                    </div>
+                                                </form>
                                             </div>
+
                                             <div>
-                                                <h2 class="fs-6">Prihlásiť cez</h2>
+                                                <h2 class="fs-6 mt-2">Prihlásiť sa cez</h2>
                                                 <a href="' . filter_var($auth_url, FILTER_SANITIZE_URL) . '">
                                                     <img class="mx-auto d-block" src="images/google-icon.png" alt="Prihlásenie cez Google" width="32" height="32">
                                                 </a>
@@ -197,7 +216,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
             <div class="collapse" id="nav-toggle">
                 <div class="row dark-blue-color mx-0">
                     <a class="col-12 col-md-6 py-3 nav-button-active d-flex justify-content-center" href="./index.php">Prehľad medailistov</a>
-                    <a class="col-12 col-md-6 py-3 d-flex justify-content-center" href="./top-10.php">Top 10</a>
+                    <a class="col-12 col-md-6 py-3 d-flex justify-content-center" href="./top_10.php">Top 10</a>
                 </div>
             </div>
         </div>
@@ -231,7 +250,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                 echo '
                 <h2 class="pb-3">Registrácia</h2>
 
-                <form action="' . htmlspecialchars($_SERVER['PHP_SELF']) . '" method="post">
+                <form action="" method="post">
                     <div class="row mb-3">
                         <div class="col-12 col-sm-6 mb-3 mb-sm-0">
                             <label for="login" class="form-label">Prihlasovacie meno</label><br>

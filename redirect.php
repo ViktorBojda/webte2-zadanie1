@@ -30,9 +30,6 @@ if (isset($_GET['code'])) {
     $g_name = $account_info->givenName;
     $g_surname = $account_info->familyName;
 
-    $pdo = new PDO("mysql:host=$hostname;dbname=$dbname", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
     $sql = "SELECT id FROM user WHERE email = ? AND external_id = ?";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$g_email, $g_id]);
@@ -60,7 +57,7 @@ if (isset($_GET['code'])) {
     $_SESSION['access_token'] = $token['access_token'];
     $_SESSION['email'] = $g_email;
     $_SESSION['id'] = $u_id;
-    $_SESSION['fullname'] = $g_fullname;
+    $_SESSION['full_name'] = $g_fullname;
     $_SESSION['name'] = $g_name;
     $_SESSION['surname'] = $g_surname;
 }

@@ -3,12 +3,12 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+session_start();
+
 require_once('config.php');
+require_once('login.php');
 
 try {
-    $pdo = new PDO("mysql:host=$hostname;dbname=$dbname", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
     $sql = "SELECT
                 CONCAT(person.name, ' ', person.surname) AS fullName,
                 COUNT(*) AS goldCount
@@ -28,6 +28,9 @@ try {
 } catch (PDOException $err) {
     echo $err->getMessage();
 }
+
+unset($stmt);
+unset($pdo);
 ?>
 
 <!DOCTYPE html>
@@ -55,11 +58,15 @@ try {
                     aria-controls="nav-toggle" aria-expanded="false" aria-label="Zobraz menu">
                         <span class="navbar-toggler-icon"></span>
                     </button>
+
+                    <div class="d-flex">
+                        <?php require_once('login_modal.php')?>
+                    </div>
                 </div>
             </nav>
             <div class="collapse" id="nav-toggle">
                 <div class="row dark-blue-color mx-0">
-                    <a class="col-12 col-md-6 py-3 d-flex justify-content-center" href="./index.php">Prehľad medailistov</a>
+                    <a class="col-12 col-md-6 py-3 d-flex justify-content-center" href="index.php">Prehľad medailistov</a>
                     <a class="col-12 col-md-6 py-3 nav-button-active d-flex justify-content-center" href="#">Top 10</a>
                 </div>
             </div>
@@ -79,10 +86,11 @@ try {
                     <tbody>
                         <?php
                         foreach ($results as $result) {
-                            echo "<tr>
-                                    <td>" . $result["fullName"] . "</td>
-                                    <td>" . $result["goldCount"] . "</td>
-                                </tr>";
+                            echo 
+                            "<tr>
+                                <td>" . $result["fullName"] . "</td>
+                                <td>" . $result["goldCount"] . "</td>
+                            </tr>";
                         }
                         ?>
                     </tbody>

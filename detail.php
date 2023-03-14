@@ -3,7 +3,10 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+session_start();
+
 require_once('config.php');
+require_once('login.php');
 
 try {
     $pdo = new PDO("mysql:host=$hostname;dbname=$dbname", $username, $password);
@@ -56,12 +59,16 @@ try {
                     aria-controls="nav-toggle" aria-expanded="false" aria-label="Zobraz menu">
                         <span class="navbar-toggler-icon"></span>
                     </button>
+
+                    <div class="d-flex">
+                        <?php require_once('login_modal.php')?>
+                    </div>
                 </div>
             </nav>
             <div class="collapse" id="nav-toggle">
                 <div class="row dark-blue-color mx-0">
-                    <a class="col-12 col-md-6 py-3 d-flex justify-content-center" href="./index.php">Prehľad medailistov</a>
-                    <a class="col-12 col-md-6 py-3 d-flex justify-content-center" href="./top-10.php">Top 10</a>
+                    <a class="col-12 col-md-6 py-3 d-flex justify-content-center" href="index.php">Prehľad medailistov</a>
+                    <a class="col-12 col-md-6 py-3 d-flex justify-content-center" href="top_10.php">Top 10</a>
                 </div>
             </div>
         </div>
