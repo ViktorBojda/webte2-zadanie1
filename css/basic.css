@@ -48,6 +48,20 @@ a.nav-button-active:hover {
     font-weight: bolder;
 }
 
+.qr-code {
+    max-width: 256px;
+    max-height: 256px;
+}
+
+.secret-code {
+    background-color: grey;
+    color: grey;
+}
+
+.secret-code:hover {
+    color: white;
+}
+
 @media all and (max-width: 1200px) {
     .page-content {
         background-color: white;

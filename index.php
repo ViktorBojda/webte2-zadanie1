@@ -107,6 +107,8 @@ try {
                                             <div class="modal-body">
                                                 <div class="border-bottom">
                                                     <h1 class="modal-title fs-5" id="loginModalLabel">Prihlásenie</h1>
+                                                    <a href="registration.php" class="btn btn-success d-block" role="button">Vytvoriť nový účet</a>
+                                                    
                                                 </div>
                                                 <div>
                                                     <h2 class="fs-6">Prihlásiť cez</h2>
@@ -175,5 +177,4 @@ try {
     <script src="https://cdn.datatables.net/1.13.3/js/dataTables.bootstrap5.min.js"></script>
     <script src="./js/index.js"></script>
 </body>
-
 </html>
