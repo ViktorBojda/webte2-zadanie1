@@ -10,20 +10,36 @@ require_once('config.php');
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $err_msg = '';
-    $post = array_map('null_empty', $_POST);
-    $sql = "SELECT * FROM person WHERE id = ?";
-    $stmt = $pdo->prepare($sql);
-    if ($stmt->execute([$post['id']])) {
-        if ($stmt->rowCount() == 1) {
-            $sql = "UPDATE person SET name = ?, surname = ?, birth_day = ?, birth_place = ?, birth_country = ?, death_day = ?, death_place = ?, death_country = ? WHERE id = ?";
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute([$post['name'], $post['surname'], $post['birth_day'], $post['birth_place'], $post['birth_country'], $post['death_day'], $post['death_place'], $post['death_country'], $post['id']]);
+
+    if (isset($_POST['action']) && $_POST['action'] == 'person_edit') {
+        $post = array_map('null_empty', $_POST);
+        $sql = "SELECT * FROM person WHERE id = ?";
+        $stmt = $pdo->prepare($sql);
+        if ($stmt->execute([$post['person_id']])) {
+            if ($stmt->rowCount() == 1) {
+                $sql = "UPDATE person SET name = ?, surname = ?, birth_day = ?, birth_place = ?, birth_country = ?, death_day = ?, death_place = ?, death_country = ? WHERE id = ?";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute([$post['name'], $post['surname'], $post['birth_day'], $post['birth_place'], $post['birth_country'], $post['death_day'], $post['death_place'], $post['death_country'], $post['person_id']]);
+            }
+            else
+                $err_msg = "Nebol nájdený žiadny športovec s hľadaným ID.";
         }
         else
-            $err_msg = "Nebol nájdený žiadny športovec s hľadaným ID.";
+            $err_msg = "Nastala chyba. Zopakujte operáciu.";
     }
-    else
-        $err_msg = "Nastala chyba. Zopakujte operáciu.";
+
+    if (isset($_POST['action']) && $_POST['action'] == 'placement_edit') {
+        $sql = "UPDATE placement SET game_id = ?, discipline = ?, placing = ? WHERE id = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$_POST['game_id'], $_POST['discipline'], $_POST['placing'], $_POST['placement_id']]);
+        exit(header('Location: ' . removeUrlParam($_SERVER['REQUEST_URI'], 'placement_id')));
+    }
+
+    if (isset($_POST['action']) && $_POST['action'] == 'placement_delete') {
+        $sql = "DELETE FROM placement WHERE id = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$_POST['placement_id']]);
+    }
 }
 
 $sql = "SELECT * FROM person";
@@ -33,15 +49,57 @@ function null_empty($var) {
   return ($var === '') ? NULL : $var;
 }
 
-if (isset($_GET['id'])) {
-    $id = $_GET['id'];
+function removeUrlParam($url, $param) {
+    $url = preg_replace('/(&|\?)'.preg_quote($param).'=[^&]*$/', '', $url);
+    $url = preg_replace('/(&|\?)'.preg_quote($param).'=[^&]*&/', '$1', $url);
+    return $url;
+}
+
+if (isset($_GET['person_id'])) {
+    $person_id = $_GET['person_id'];
+
     $sql = "SELECT * FROM person WHERE id = ?";
     $stmt = $pdo->prepare($sql);
-    $stmt->execute([$id]);
-    if ($stmt->rowCount() == 1)
+    $stmt->execute([$person_id]);
+    if ($stmt->rowCount() == 1) {
         $searched_athlete = $stmt->fetch();
+
+        $sql = "SELECT
+                    placement.*,
+                    CONCAT(game.city, ', ', game.country) AS location,
+                    game.year,
+                    game.type
+                FROM
+                    placement
+                JOIN game ON placement.game_id = game.id
+                WHERE
+                    placement.person_id = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$person_id]);
+        $placements = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
     else
         $err_msg = "Nebol nájdený žiadny športovec s hľadaným ID.";
+}
+
+if (isset($_GET['placement_id'])) {
+    $placement_id = $_GET['placement_id'];
+
+    $sql = "SELECT * FROM placement WHERE id = ?";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$placement_id]);
+    if ($stmt->rowCount() == 1) {
+        $searched_placement = $stmt->fetch();
+
+        $sql = "SELECT
+                    game.id,
+                    CONCAT(game.city, ', ', game.country, ' (', game.year, ')') AS location
+                FROM
+                    game";
+        $games = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+    }
+    else
+        $err_msg = "Nebolo nájdené žiadne umiestnenie s hľadaným ID.";
 }
 
 unset($stmt);
@@ -90,12 +148,12 @@ unset($pdo);
 
         <?php 
         if (isset($err_msg)) {
-            if (empty($err_msg))
-                echo '
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    Športovec ' . $post['name'] . ' ' . $post['surname'] . ' bol upravený.
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>';
+            if (empty($err_msg)){}
+                // echo '
+                // <div class="alert alert-success alert-dismissible fade show" role="alert">
+                //     Športovec ' . $post['name'] . ' ' . $post['surname'] . ' bol upravený.
+                //     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                // </div>';
             else
                 echo '
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -106,12 +164,12 @@ unset($pdo);
         ?>
 
         <div class="page-content p-3">
-            <h2 class="pb-3">Uprav športovca</h2>
+            <h2 class="pb-3">Upravenie športovca a jeho umiestnení</h2>
 
             <form action="" method="get">
                 <div class="row mb-3">
                     <div class="col-6">
-                        <select name="id" class="form-select" required>
+                        <select name="person_id" class="form-select" required>
                             <?php
                             if (isset($searched_athlete)) {
                                 echo '<option disabled>Nájdi športovca</option>';
@@ -141,7 +199,7 @@ unset($pdo);
             if (isset($searched_athlete)) {
                 echo '
                 <form action="" method="post">
-                    <input type="hidden" name="id" value="' . $searched_athlete['id'] . '">
+                    <input type="hidden" name="person_id" value="' . $searched_athlete['id'] . '">
 
                     <div class="row mb-3">
                         <div class="col-12 col-sm-6 mb-3 mb-sm-0">
@@ -189,14 +247,85 @@ unset($pdo);
                         </div>
                     </div>
                     
-                    <div class="row">
+                    <div class="row mb-3 pb-3 border-bottom">
                         <div class="col-12 d-grid">
-                            <button type="submit" class="btn btn-success btn-lg">Upraviť</button>
+                            <button type="submit" name="action" value="person_edit" class="btn btn-success btn-lg">Upraviť športovca</button>
                         </div>
                     </div>
                 </form>';
             }
             ?>
+
+            <h3 class="pb-3">Umiestnenia</h3>
+
+            <div class="table-responsive">
+                <table id="table-placements" class="table">
+                    <thead>
+                        <tr>
+                            <td>Miesto</td>
+                            <td>Rok</td>
+                            <td>Typ</td>
+                            <td>Disciplína</td>
+                            <td>Umiestnenie</td>
+                            <td>Akcia</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </select>
+                        <?php
+                        foreach ($placements as $placement) {
+                            if (isset($searched_placement) && $searched_placement['id'] == $placement['id']) {
+                                echo "
+                                <tr>
+                                    <form action='' method='post'>
+                                        <td>
+                                            <select name='game_id' class='form-select' required>";
+                                            foreach ($games as $game) {
+                                                if ($game['id'] == $searched_placement['game_id'])
+                                                    echo '<option selected value="' . $game['id'] . '">' . $game['location'] . '</option>';
+                                                else
+                                                    echo '<option value="' . $game['id'] . '">' . $game['location'] . '</option>';
+                                            }                                            
+                                    echo "  </select>
+                                        </td>
+                                        <td></td>
+                                        <td></td>
+                                        <td><input type='text' class='form-control' value='{$searched_placement['discipline']}' name='discipline' required></td>
+                                        <td><input type='number' class='form-control' value='{$searched_placement['placing']}' name='placing' required></td>
+                                        <td>
+                                            <input type='hidden' name='placement_id' value={$placement['id']}>
+                                            <button class='btn btn-success' name='action' value='placement_edit' type='submit'>Upraviť</button>
+                                            <a href='{$_SERVER['PHP_SELF']}?person_id={$searched_athlete['id']}' class='btn btn-primary me-3' role='button'>Zrušiť</a>
+                                            <button class='btn btn-danger' name='action' value='placement_delete' type='submit'>Vymazať</button>
+                                        </td>
+                                    </form>
+                                </tr>";  
+                            }                              
+                            else
+                                echo "
+                                <tr>
+                                    <td>{$placement['location']}</td>
+                                    <td>{$placement['year']}</td>
+                                    <td>{$placement['type']}</td>
+                                    <td>{$placement['discipline']}</td>
+                                    <td>{$placement['placing']}</td>
+                                    <td>
+                                        <form action='' method='get'>
+                                            <input type='hidden' name='person_id' value={$searched_athlete['id']}>
+                                            <input type='hidden' name='placement_id' value={$placement['id']}>
+                                            <button class='btn btn-warning' type='submit'>Upraviť</button>
+                                        </form>
+                                        <form action='' method='post'>
+                                            <input type='hidden' name='placement_id' value={$placement['id']}>
+                                            <button class='btn btn-danger' name='action' value='placement_delete' type='submit'>Vymazať</button>
+                                        </form>
+                                    </td>
+                                </tr>";
+                        }
+                        ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
         
     </div>

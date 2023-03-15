@@ -107,7 +107,7 @@ unset($pdo);
         ?>
 
         <div class="page-content p-3">
-            <h2 class="pb-3">Pridaj športovca</h2>
+            <h2 class="pb-3">Pridávanie športovca</h2>
 
             <form action="" method="post">
                 <div class="row mb-3">
