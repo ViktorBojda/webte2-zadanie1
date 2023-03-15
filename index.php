@@ -59,7 +59,13 @@ unset($pdo);
                     </button>
 
                     <div class="d-flex">
-                        <?php require_once('login_navbar.php')?>
+                        <?php 
+                        if ((isset($_SESSION['access_token']) && $_SESSION['access_token']) || 
+                            (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true))
+                            require_once('logged_in_navbar.php');
+                        else
+                            require_once('login_modal.php');
+                        ?>
                     </div>
                 </div>
             </nav>

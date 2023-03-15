@@ -5,19 +5,7 @@ error_reporting(E_ALL);
 
 session_start();
 
-if ((isset($_SESSION['access_token']) && $_SESSION['access_token']) || 
-    (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)) {
-
-    $email = $_SESSION['email'];
-    $id = $_SESSION['id'];
-    $full_name = $_SESSION['full_name'];
-    $name = $_SESSION['name'];
-    $surname = $_SESSION['surname'];
-
-} else {
-    header('Location: index.php');
-}
-
+require_once('restricted.php');
 require_once('config.php');
 
 function null_empty($var) {
@@ -74,7 +62,7 @@ unset($pdo);
                     </button>
 
                     <div class="d-flex">
-                        <span class="align-self-center px-3 text-white">Vitaj <?php echo $full_name?></span>
+                        <span class="align-self-center px-3 text-white">Vitaj <?php echo $_SESSION['full_name']?></span>
 
                         <a href="#" data-bs-toggle="dropdown" aria-expanded="false">
                             <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="#adb5bd" class="bi bi-person-circle" viewBox="0 0 16 16">
@@ -86,7 +74,7 @@ unset($pdo);
                         <div class="dropdown">
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="#">Pridať športovca</a></li>
-                                <li><a class="dropdown-item" href="#">Another action</a></li>
+                                <li><a class="dropdown-item" href="edit_person.php">Upraviť športovca</a></li>
                                 <li><a class="dropdown-item" href="logout.php">Odhlásiť sa</a></li>
                             </ul>
                         </div>
@@ -106,7 +94,7 @@ unset($pdo);
             if (empty($err_msg))
                 echo '
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    Športovec ' . $post['name'] . ' ' . $post['surname'] . ' bol pridaný do databázy.
+                    Športovec ' . $post['name'] . ' ' . $post['surname'] . ' bol pridaný.
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>';
             else
