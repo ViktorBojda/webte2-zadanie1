@@ -40,6 +40,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$_POST['placement_id']]);
     }
+
+    if (isset($_POST['action']) && $_POST['action'] == 'placement_add') {
+        $sql = "INSERT INTO placement (person_id, game_id, discipline, placing) VALUES(?,?,?,?)";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$_POST['person_id'], $_POST['game_id'], $_POST['discipline'], $_POST['placing']]);
+    }
 }
 
 $sql = "SELECT * FROM person";
@@ -80,6 +86,13 @@ if (isset($_GET['person_id'])) {
     }
     else
         $err_msg = "Nebol nájdený žiadny športovec s hľadaným ID.";
+
+    $sql = "SELECT
+        game.id,
+        CONCAT(game.city, ', ', game.country, ' (', game.year, ')') AS location
+    FROM
+        game";
+    $games = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 }
 
 if (isset($_GET['placement_id'])) {
@@ -88,16 +101,8 @@ if (isset($_GET['placement_id'])) {
     $sql = "SELECT * FROM placement WHERE id = ?";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$placement_id]);
-    if ($stmt->rowCount() == 1) {
+    if ($stmt->rowCount() == 1)
         $searched_placement = $stmt->fetch();
-
-        $sql = "SELECT
-                    game.id,
-                    CONCAT(game.city, ', ', game.country, ' (', game.year, ')') AS location
-                FROM
-                    game";
-        $games = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
-    }
     else
         $err_msg = "Nebolo nájdené žiadne umiestnenie s hľadaným ID.";
 }
@@ -172,7 +177,7 @@ unset($pdo);
                         <select name="person_id" class="form-select" required>
                             <?php
                             if (isset($searched_athlete)) {
-                                echo '<option disabled>Nájdi športovca</option>';
+                                echo '<option disabled value="">Vyber športovca</option>';
                                 foreach ($athletes as $athlete) {
                                     if ($athlete['id'] == $searched_athlete['id'])
                                         echo '<option selected value="' . $athlete['id'] . '">' . $athlete['name'] . ' ' . $athlete['surname'] . '</option>';
@@ -181,7 +186,7 @@ unset($pdo);
                                 }
                             }
                             else {
-                                echo '<option selected disabled>Nájdi športovca</option>';
+                                echo '<option selected disabled value="">Vyber športovca</option>';
                                 foreach ($athletes as $athlete)
                                     echo '<option value="' . $athlete['id'] . '">' . $athlete['name'] . ' ' . $athlete['surname'] . '</option>';
                             }
@@ -252,27 +257,23 @@ unset($pdo);
                             <button type="submit" name="action" value="person_edit" class="btn btn-success btn-lg">Upraviť športovca</button>
                         </div>
                     </div>
-                </form>';
-            }
-            ?>
+                </form>
 
-            <h3 class="pb-3">Umiestnenia</h3>
+                <h3 class="pb-3">Umiestnenia</h3>
 
-            <div class="table-responsive">
-                <table id="table-placements" class="table">
-                    <thead>
-                        <tr>
-                            <td>Miesto</td>
-                            <td>Rok</td>
-                            <td>Typ</td>
-                            <td>Disciplína</td>
-                            <td>Umiestnenie</td>
-                            <td>Akcia</td>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </select>
-                        <?php
+                <div class="table-responsive mb-3">
+                    <table id="table-placements" class="table">
+                        <thead>
+                            <tr>
+                                <td>Miesto</td>
+                                <td>Rok</td>
+                                <td>Typ</td>
+                                <td>Disciplína</td>
+                                <td>Umiestnenie</td>
+                                <td>Akcia</td>
+                            </tr>
+                        </thead>
+                        <tbody>';
                         foreach ($placements as $placement) {
                             if (isset($searched_placement) && $searched_placement['id'] == $placement['id']) {
                                 echo "
@@ -322,10 +323,45 @@ unset($pdo);
                                     </td>
                                 </tr>";
                         }
-                        ?>
-                    </tbody>
-                </table>
-            </div>
+                echo '
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="pb-3">Pridanie umiestnenia</h3>
+
+                <form action="" method="post">
+                    <input type="hidden" name="person_id" value="' . $searched_athlete['id'] . '">
+
+                    <div class="row mb-3">
+                        <div class="col-12 col-sm-4 mb-3 mb-sm-0">
+                            <label for="placement-location" class="form-label">Miesto</label><br>
+                            <select name="game_id" class="form-select" required>
+                                <option disabled selected value="">Vyber Olympíjsku Hru</option>';
+                                foreach ($games as $game) 
+                                    echo '<option value="' . $game['id'] . '">' . $game['location'] . '</option>';
+                    echo '  </select>
+                        </div>
+
+                        <div class="col-12 col-sm-4 mb-3 mb-sm-0">
+                            <label for="placement-discipline" class="form-label">Disciplína</label><br>
+                            <input type="text" class="form-control" value="" name="discipline" id="placement-discipline" required>
+                        </div>
+
+                        <div class="col-12 col-sm-4 mb-3 mb-sm-0">
+                            <label for="placement-placing" class="form-label">Umiestnenie</label><br>
+                            <input type="number" class="form-control" value="" name="placing" id="placement-placing" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3 pb-3 border-bottom">
+                        <div class="col-12 d-grid">
+                            <button type="submit" name="action" value="placement_add" class="btn btn-success btn-lg">Pridať umiestnenie</button>
+                        </div>
+                    </div>
+                </form>';
+            }
+            ?>
         </div>
         
     </div>
