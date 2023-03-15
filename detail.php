@@ -61,7 +61,7 @@ try {
                     </button>
 
                     <div class="d-flex">
-                        <?php require_once('login_modal.php')?>
+                        <?php require_once('login_navbar.php')?>
                     </div>
                 </div>
             </nav>

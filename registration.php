@@ -253,32 +253,32 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                 <form action="" method="post">
                     <div class="row mb-3">
                         <div class="col-12 col-sm-6 mb-3 mb-sm-0">
-                            <label for="login" class="form-label">Prihlasovacie meno</label><br>
-                            <input type="text" class="form-control" name="login" id="login" required>
+                            <label for="reg-login" class="form-label">Prihlasovacie meno</label><br>
+                            <input type="text" class="form-control" name="login" id="reg-login" required>
                         </div>
     
                         <div class="col-12 col-sm-6 mb-3 mb-sm-0">
-                            <label for="password" class="form-label">Heslo</label><br>
-                            <input type="password" class="form-control" name="password" id="password" required>
+                            <label for="reg-password" class="form-label">Heslo</label><br>
+                            <input type="password" class="form-control" name="password" id="reg-password" required>
                         </div>
                     </div>
     
                     <div class="row mb-3">
                         <div class="col-12">
-                            <label for="email" class="form-label">Emailová adresa</label><br>
-                            <input type="email" class="form-control" name="email" id="email" required>
+                            <label for="reg-email" class="form-label">Emailová adresa</label><br>
+                            <input type="email" class="form-control" name="email" id="reg-email" required>
                         </div>
                     </div>
     
                     <div class="row mb-3">
                         <div class="col-12 col-sm-6 mb-3 mb-sm-0">
-                            <label for="firstName" class="form-label">Meno</label><br>
-                            <input type="text" class="form-control" name="first_name" id="firstName" required>
+                            <label for="reg-firstName" class="form-label">Meno</label><br>
+                            <input type="text" class="form-control" name="first_name" id="reg-firstName" required>
                         </div>
     
                         <div class="col-12 col-sm-6 mb-3 mb-sm-0">
-                            <label for="lastName" class="form-label">Priezvisko</label><br>
-                            <input type="text" class="form-control" name="last_name" id="lastName" required>
+                            <label for="reg-lastName" class="form-label">Priezvisko</label><br>
+                            <input type="text" class="form-control" name="last_name" id="reg-lastName" required>
                         </div>
                     </div>
                     

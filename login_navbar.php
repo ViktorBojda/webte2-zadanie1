@@ -12,7 +12,7 @@ if ((isset($_SESSION['access_token']) && $_SESSION['access_token']) ||
 
         <div class="dropdown">
             <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="#">Action</a></li>
+                <li><a class="dropdown-item" href="add_person.php">Pridať športovca</a></li>
                 <li><a class="dropdown-item" href="#">Another action</a></li>
                 <li><a class="dropdown-item" href="logout.php">Odhlásiť sa</a></li>
             </ul>

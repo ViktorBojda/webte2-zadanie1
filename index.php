@@ -59,14 +59,14 @@ unset($pdo);
                     </button>
 
                     <div class="d-flex">
-                        <?php require_once('login_modal.php')?>
+                        <?php require_once('login_navbar.php')?>
                     </div>
                 </div>
             </nav>
             <div class="collapse" id="nav-toggle">
                 <div class="row dark-blue-color mx-0">
                     <a class="col-12 col-md-6 py-3 nav-button-active d-flex justify-content-center" href="#">Prehľad medailistov</a>
-                    <a class="col-12 col-md-6 py-3 d-flex justify-content-center" href="./top_10.php">Top 10</a>
+                    <a class="col-12 col-md-6 py-3 d-flex justify-content-center" href="top_10.php">Top 10</a>
                 </div>
             </div>
         </div>
