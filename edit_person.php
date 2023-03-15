@@ -9,7 +9,7 @@ require_once('restricted.php');
 require_once('config.php');
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $err_msg = '';
+    // $err_msg = '';
 
     if (isset($_POST['action']) && $_POST['action'] == 'person_edit') {
         $post = array_map('null_empty', $_POST);
@@ -26,6 +26,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
         else
             $err_msg = "Nastala chyba. Zopakujte operáciu.";
+    }
+
+    if (isset($_POST['action']) && $_POST['action'] == 'person_delete') {
+        $sql = "DELETE FROM person WHERE id = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$post['person_id']]);
+        exit(header('Location: ' . $_SERVER['PHP_SELF']));
     }
 
     if (isset($_POST['action']) && $_POST['action'] == 'placement_edit') {
@@ -253,8 +260,11 @@ unset($pdo);
                     </div>
                     
                     <div class="row mb-3 pb-3 border-bottom">
-                        <div class="col-12 d-grid">
-                            <button type="submit" name="action" value="person_edit" class="btn btn-success btn-lg">Upraviť športovca</button>
+                        <div class="col-9 d-grid">
+                            <button type="submit" name="action" value="person_edit" class="btn btn-warning btn-lg">Upraviť športovca</button>
+                        </div>
+                        <div class="col-3 d-grid">
+                            <button type="submit" name="action" value="person_delete" class="btn btn-danger btn-lg">Vymazať športovca</button>
                         </div>
                     </div>
                 </form>
