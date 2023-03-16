@@ -51,15 +51,20 @@ if (isset($_GET['code'])) {
         $u_id = $stmt->fetchColumn();
     }
 
-    unset($stmt);
-    unset($pdo);
-
     $_SESSION['access_token'] = $token['access_token'];
     $_SESSION['email'] = $g_email;
     $_SESSION['id'] = $u_id;
     $_SESSION['full_name'] = $g_fullname;
     $_SESSION['name'] = $g_name;
     $_SESSION['surname'] = $g_surname;
+
+    $sql = "INSERT INTO login_session (email, source) VALUES (?,?)";
+    $stmt = $pdo->prepare($sql);
+    if ($stmt->execute([$_SESSION["email"], 'Google']))
+        $_SESSION['login_session_id'] = $pdo->lastInsertId();
+
+    unset($stmt);
+    unset($pdo);
 }
 
 exit(header('Location: index.php'));

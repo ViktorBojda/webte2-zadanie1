@@ -28,6 +28,12 @@ function checkUsername($username) {
     return true;
 }
 
+function checkGmail($email) {
+    if (!preg_match('/^[\w.+\-]+@gmail\.com$/', trim($email)))
+        return false;
+    return true;
+}
+
 function checkEmail($email) {
     if (filter_var($email, FILTER_VALIDATE_EMAIL))
         return true;
@@ -53,8 +59,11 @@ function userExists($db, $login, $email) {
 }
 
 
-if ($_SERVER['REQUEST_METHOD'] == "POST") {
-    $err_msg = "";
+if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['action']) && $_POST['action'] == 'user_create') {
+    $alert_msg=array(
+        "message"=>"",
+        "class"=>"danger"
+    );
 
     $login = $_POST['login'];
     $email = $_POST['email'];
@@ -62,35 +71,38 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
     $fullName = $_POST["first_name"] . ' ' . $_POST["last_name"];
 
     if (checkEmpty($login) === true)
-        $err_msg .= "<p>Prihlasovacie meno nesmie byť prázdne.</p>";
+        $alert_msg['message'] .= "<p>Prihlasovacie meno nesmie byť prázdne.</p>";
     elseif (checkLength($login, 6, 32) === false)
-        $err_msg .= "<p>Prihlasovacie meno musí mať minimálne 6 a maximálne 32 znakov.</p>";
+        $alert_msg['message'] .= "<p>Prihlasovacie meno musí mať minimálne 6 a maximálne 32 znakov.</p>";
     elseif (checkUsername($login) === false)
-        $err_msg .= "<p>Prihlasovacie meno môže obsahovať iba veľké, malé pismená, číslice a podtržník.</p>";
+        $alert_msg['message'] .= "<p>Prihlasovacie meno môže obsahovať iba veľké, malé pismená, číslice a podtržník.</p>";
 
     if (checkEmpty($email) === true)
-        $err_msg .= "<p>Email nesmie byť prázdny.</p>";
+        $alert_msg['message'] .= "<p>Email nesmie byť prázdny.</p>";
     elseif (checkEmail($email) === false)
-        $err_msg .= "<p>Nesprávny formát emailu.</p>";
+        $alert_msg['message'] .= "<p>Nesprávny formát emailu.</p>";
+
+    if (checkGmail($_POST['email']))
+        $alert_msg['message'] .= "<p>Prihláste sa pomocou účtu Google.</p>";
 
     if (userExists($pdo, $login, $email) === true)
-        $err_msg .= "Používateľ s týmto prihlasovacím menom alebo emailom už existuje.</p>";
+        $alert_msg['message'] .= "<p>Používateľ s týmto prihlasovacím menom alebo emailom už existuje.</p>";
 
     if (checkEmpty($_POST['password']) === true)
-        $err_msg .= "<p>Heslo nesmie byť prázdne.</p>";
+        $alert_msg['message'] .= "<p>Heslo nesmie byť prázdne.</p>";
     elseif (checkLength($_POST['password'], 6, 512) === false)
-        $err_msg .= "<p>Heslo musí mať minimálne 6 a maximálne 512 znakov.</p>";
+        $alert_msg['message'] .= "<p>Heslo musí mať minimálne 6 a maximálne 512 znakov.</p>";
 
     if (checkEmpty($_POST['first_name']) === true)
-        $err_msg .= "<p>Meno nesmie byť prázdne.</p>";
+        $alert_msg['message'] .= "<p>Meno nesmie byť prázdne.</p>";
 
     if (checkEmpty($_POST['last_name']) === true)
-        $err_msg .= "<p>Priezvisko nesmie byť prázdne.</p>";
+        $alert_msg['message'] .= "<p>Priezvisko nesmie byť prázdne.</p>";
 
     if (checkLength($fullName, 2, 128) === false)
-        $err_msg .= "<p>Kombinácia mena a priezviska nesmie presiahnuť 128 znakov.</p>";
+        $alert_msg['message'] .= "<p>Kombinácia mena a priezviska nesmie presiahnuť 128 znakov.</p>";
     
-    if (empty($err_msg)) {  
+    if (empty($alert_msg['message'])) {  
         $sql = "INSERT INTO user (full_name, email, login, password, 2fa_code) VALUES (?,?,?,?,?)";
 
         $hashed_password = password_hash($_POST['password'], PASSWORD_ARGON2ID);
@@ -104,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
         if ($stmt->execute([$fullName, $email, $login, $hashed_password, $user_secret]))
             $qr_code = $code_url;
         else
-            echo "Nastala chyba. Prosím zopakujte registráciu.";
+            $alert_msg['message'] .= "<p>Nastala chyba. Prosím zopakujte registráciu.</p>";
 
         unset($stmt);
     }
@@ -151,11 +163,13 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
             </nav>
             <div class="collapse" id="nav-toggle">
                 <div class="row dark-blue-color mx-0">
-                    <a class="col-12 col-md-6 py-3 nav-button-active d-flex justify-content-center" href="./index.php">Prehľad medailistov</a>
+                    <a class="col-12 col-md-6 py-3 d-flex justify-content-center" href="./index.php">Prehľad medailistov</a>
                     <a class="col-12 col-md-6 py-3 d-flex justify-content-center" href="./top_10.php">Top 10</a>
                 </div>
             </div>
         </div>
+
+        <?php require_once('alert_msg.php') ?>
 
         <div class="page-content p-3">
             <?php 
@@ -190,12 +204,12 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                     <div class="row mb-3">
                         <div class="col-12 col-sm-6 mb-3 mb-sm-0">
                             <label for="reg-login" class="form-label">Prihlasovacie meno</label><br>
-                            <input type="text" class="form-control" name="login" id="reg-login" required>
+                            <input type="text" class="form-control" name="login" id="reg-login" minlength="6" maxlength="32" required>
                         </div>
     
                         <div class="col-12 col-sm-6 mb-3 mb-sm-0">
                             <label for="reg-password" class="form-label">Heslo</label><br>
-                            <input type="password" class="form-control" name="password" id="reg-password" required>
+                            <input type="password" class="form-control" name="password" id="reg-password" minlength="6" maxlength="512" required>
                         </div>
                     </div>
     
@@ -220,10 +234,9 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                     
                     <div class="row">
                         <div class="col-12 d-grid">
-                            <button type="submit" class="btn btn-success btn-lg">Vytvoriť účet</button>
+                            <button type="submit" name="action" value="user_create" class="btn btn-success btn-lg">Vytvoriť účet</button>
                         </div>
                     </div>
-                    ' . (!empty($err_msg) ? $err_msg : "") . '
                 </form>';
             }
             ?>

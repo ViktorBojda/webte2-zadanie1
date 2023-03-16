@@ -13,7 +13,10 @@ function null_empty($var) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $err_msg = "";
+    $alert_msg = array(
+        "message"=>"",
+        "class"=>"danger"
+    );
     $post = array_map('null_empty', $_POST);
     $sql = "SELECT * FROM person WHERE name = ? AND surname = ? AND birth_day = ? AND birth_place = ? AND birth_country = ?";
     $stmt = $pdo->prepare($sql);
@@ -21,13 +24,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($stmt->rowCount() == 0) {
             $sql = "INSERT INTO person (name, surname, birth_day, birth_place, birth_country, death_day, death_place, death_country) VALUES (?,?,?,?,?,?,?,?)";
             $stmt = $pdo->prepare($sql);
-            $stmt->execute([$post['name'], $post['surname'], $post['birth_day'], $post['birth_place'], $post['birth_country'], $post['death_day'], $post['death_place'], $post['death_country']]);
+
+            if ($stmt->execute([$post['name'], $post['surname'], $post['birth_day'], $post['birth_place'], $post['birth_country'], $post['death_day'], $post['death_place'], $post['death_country']])) {
+                $alert_msg['message'] = "<p>Športovec {$post['name']} {$post['surname']} bol vytvorený.</p>";
+                $alert_msg['class'] = "success";
+
+                $last_id = $pdo->lastInsertId();
+                $sql = "INSERT INTO user_action (user_id, login_session_id, action, table_name, record_id) VALUES (?,?,?,?,?)";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute([$_SESSION['id'], $_SESSION['login_session_id'], 'INSERT', 'person', $last_id]);
+            }
+            else
+                $alert_msg['message'] = "<p>Nastala chyba. Zopakujte operáciu.</p>.";
         }
         else
-            $err_msg = "Rovnaký športovec už v databáze existuje.";
+            $alert_msg['message'] = "<p>Rovnaký športovec už v databáze existuje.</p>";
     }
     else
-        $err_msg = "Nastala chyba. Zopakujte operáciu.";
+        $alert_msg['message'] = "<p>Nastala chyba. Zopakujte operáciu.</p>.";
 }
 
 unset($stmt);
@@ -62,52 +76,22 @@ unset($pdo);
                     </button>
 
                     <div class="d-flex">
-                        <span class="align-self-center px-3 text-white">Vitaj <?php echo $_SESSION['full_name']?></span>
-
-                        <a href="#" data-bs-toggle="dropdown" aria-expanded="false">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="#adb5bd" class="bi bi-person-circle" viewBox="0 0 16 16">
-                                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
-                                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
-                            </svg>
-                        </a>
-
-                        <div class="dropdown">
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="#">Pridať športovca</a></li>
-                                <li><a class="dropdown-item" href="edit_person.php">Upraviť športovca</a></li>
-                                <li><a class="dropdown-item" href="logout.php">Odhlásiť sa</a></li>
-                            </ul>
-                        </div>
+                        <?php require_once('logged_in_navbar.php') ?>
                     </div>
                 </div>
             </nav>
             <div class="collapse" id="nav-toggle">
                 <div class="row dark-blue-color mx-0">
-                    <a class="col-12 col-md-6 py-3 nav-button-active d-flex justify-content-center" href="index.php">Prehľad medailistov</a>
+                    <a class="col-12 col-md-6 py-3 d-flex justify-content-center" href="index.php">Prehľad medailistov</a>
                     <a class="col-12 col-md-6 py-3 d-flex justify-content-center" href="top_10.php">Top 10</a>
                 </div>
             </div>
         </div>
 
-        <?php 
-        if (isset($err_msg)) {
-            if (empty($err_msg))
-                echo '
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    Športovec ' . $post['name'] . ' ' . $post['surname'] . ' bol pridaný.
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>';
-            else
-                echo '
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    ' . $err_msg . '
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>';
-        }
-        ?>
+        <?php require_once('alert_msg.php') ?>
 
         <div class="page-content p-3">
-            <h2 class="pb-3">Pridávanie športovca</h2>
+            <h2 class="pb-3">Pridanie športovca</h2>
 
             <form action="" method="post">
                 <div class="row mb-3">

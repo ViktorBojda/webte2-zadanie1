@@ -8,9 +8,12 @@ session_start();
 require_once('restricted.php');
 require_once('config.php');
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // $err_msg = '';
+$alert_msg = array(
+    "message"=>"",
+    "class"=>"danger"
+);
 
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (isset($_POST['action']) && $_POST['action'] == 'person_edit') {
         $post = array_map('null_empty', $_POST);
         $sql = "SELECT * FROM person WHERE id = ?";
@@ -19,39 +22,70 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($stmt->rowCount() == 1) {
                 $sql = "UPDATE person SET name = ?, surname = ?, birth_day = ?, birth_place = ?, birth_country = ?, death_day = ?, death_place = ?, death_country = ? WHERE id = ?";
                 $stmt = $pdo->prepare($sql);
-                $stmt->execute([$post['name'], $post['surname'], $post['birth_day'], $post['birth_place'], $post['birth_country'], $post['death_day'], $post['death_place'], $post['death_country'], $post['person_id']]);
+
+                if ($stmt->execute([$post['name'], $post['surname'], $post['birth_day'], $post['birth_place'], $post['birth_country'], $post['death_day'], $post['death_place'], $post['death_country'], $post['person_id']])) {
+                    $alert_msg['message'] = "<p>Športovec {$post['name']} {$post['surname']} bol upravený.</p>";
+                    $alert_msg['class'] = "success";
+
+                    $sql = "INSERT INTO user_action (user_id, login_session_id, action, table_name, record_id) VALUES (?,?,?,?,?)";
+                    $stmt = $pdo->prepare($sql);
+                    $stmt->execute([$_SESSION['id'], $_SESSION['login_session_id'], 'UPDATE', 'person', $post['person_id']]);
+                }
             }
             else
-                $err_msg = "Nebol nájdený žiadny športovec s hľadaným ID.";
+                $alert_msg['message'] .= "<p>Nebol nájdený žiadny športovec s hľadaným ID.</p>";
         }
         else
-            $err_msg = "Nastala chyba. Zopakujte operáciu.";
+            $alert_msg['message'] .= "<p>Nastala chyba. Zopakujte operáciu.</p>";
     }
 
     if (isset($_POST['action']) && $_POST['action'] == 'person_delete') {
         $sql = "DELETE FROM person WHERE id = ?";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$post['person_id']]);
+        if ($stmt->execute([$_POST['person_id']])) {
+            $sql = "INSERT INTO user_action (user_id, login_session_id, action, table_name, record_id) VALUES (?,?,?,?,?)";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$_SESSION['id'], $_SESSION['login_session_id'], 'DELETE', 'person', $_POST['person_id']]);
+        }
         exit(header('Location: ' . $_SERVER['PHP_SELF']));
     }
 
     if (isset($_POST['action']) && $_POST['action'] == 'placement_edit') {
         $sql = "UPDATE placement SET game_id = ?, discipline = ?, placing = ? WHERE id = ?";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$_POST['game_id'], $_POST['discipline'], $_POST['placing'], $_POST['placement_id']]);
+        if ($stmt->execute([$_POST['game_id'], $_POST['discipline'], $_POST['placing'], $_POST['placement_id']])) {
+            $sql = "INSERT INTO user_action (user_id, login_session_id, action, table_name, record_id) VALUES (?,?,?,?,?)";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$_SESSION['id'], $_SESSION['login_session_id'], 'UPDATE', 'placement', $_POST['placement_id']]);
+        }
         exit(header('Location: ' . removeUrlParam($_SERVER['REQUEST_URI'], 'placement_id')));
     }
 
     if (isset($_POST['action']) && $_POST['action'] == 'placement_delete') {
         $sql = "DELETE FROM placement WHERE id = ?";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$_POST['placement_id']]);
+        if ($stmt->execute([$_POST['placement_id']])) {
+            $alert_msg['message'] = "<p>Umiestnenie s ID {$_POST['placement_id']} bolo zmazané.</p>";
+            $alert_msg['class'] = "success";
+
+            $sql = "INSERT INTO user_action (user_id, login_session_id, action, table_name, record_id) VALUES (?,?,?,?,?)";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$_SESSION['id'], $_SESSION['login_session_id'], 'DELETE', 'placement', $_POST['placement_id']]);
+        }
     }
 
     if (isset($_POST['action']) && $_POST['action'] == 'placement_add') {
         $sql = "INSERT INTO placement (person_id, game_id, discipline, placing) VALUES(?,?,?,?)";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$_POST['person_id'], $_POST['game_id'], $_POST['discipline'], $_POST['placing']]);
+        if ($stmt->execute([$_POST['person_id'], $_POST['game_id'], $_POST['discipline'], $_POST['placing']])) {
+            $alert_msg['message'] = "<p>Umiestnenie bolo pridané.</p>";
+            $alert_msg['class'] = "success";
+
+            $last_id = $pdo->lastInsertId();
+            $sql = "INSERT INTO user_action (user_id, login_session_id, action, table_name, record_id) VALUES (?,?,?,?,?)";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$_SESSION['id'], $_SESSION['login_session_id'], 'INSERT', 'placement', $last_id]);
+        }
     }
 }
 
@@ -92,7 +126,7 @@ if (isset($_GET['person_id'])) {
         $placements = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     else
-        $err_msg = "Nebol nájdený žiadny športovec s hľadaným ID.";
+        $alert_msg['message'] .= "<p>Nebol nájdený žiadny športovec s hľadaným ID.</p>";
 
     $sql = "SELECT
         game.id,
@@ -111,7 +145,7 @@ if (isset($_GET['placement_id'])) {
     if ($stmt->rowCount() == 1)
         $searched_placement = $stmt->fetch();
     else
-        $err_msg = "Nebolo nájdené žiadne umiestnenie s hľadaným ID.";
+    $alert_msg['message'] .= "<p>Nebolo nájdené žiadne umiestnenie s hľadaným ID.</p>";
 }
 
 unset($stmt);
@@ -152,28 +186,13 @@ unset($pdo);
             </nav>
             <div class="collapse" id="nav-toggle">
                 <div class="row dark-blue-color mx-0">
-                    <a class="col-12 col-md-6 py-3 nav-button-active d-flex justify-content-center" href="index.php">Prehľad medailistov</a>
+                    <a class="col-12 col-md-6 py-3 d-flex justify-content-center" href="index.php">Prehľad medailistov</a>
                     <a class="col-12 col-md-6 py-3 d-flex justify-content-center" href="top_10.php">Top 10</a>
                 </div>
             </div>
         </div>
 
-        <?php 
-        if (isset($err_msg)) {
-            if (empty($err_msg)){}
-                // echo '
-                // <div class="alert alert-success alert-dismissible fade show" role="alert">
-                //     Športovec ' . $post['name'] . ' ' . $post['surname'] . ' bol upravený.
-                //     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                // </div>';
-            else
-                echo '
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    ' . $err_msg . '
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>';
-        }
-        ?>
+        <?php require_once('alert_msg.php') ?>
 
         <div class="page-content p-3">
             <h2 class="pb-3">Upravenie športovca a jeho umiestnení</h2>

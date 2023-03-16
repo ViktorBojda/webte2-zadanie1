@@ -16,8 +16,8 @@ else {
 
     $auth_url = $client->createAuthUrl();
 
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        $sql = "SELECT full_name, login, email, password, 2fa_code, created_at FROM user WHERE login = ? OR email = ?";
+    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['action'] == 'user_sign_in') {
+        $sql = "SELECT id, full_name, login, email, password, 2fa_code, created_at FROM user WHERE login = ? OR email = ?";
         $stmt = $pdo->prepare($sql);
         if ($stmt->execute([$_POST['identifier'], $_POST['identifier']])) {
             if ($stmt->rowCount() == 1) {
@@ -30,21 +30,39 @@ else {
                     if ($g2fa->verifyCode($row['2fa_code'], $_POST['2fa_code'], 1)) {
                         $_SESSION["logged_in"] = true;
                         $_SESSION["login"] = $row['login'];
+                        $_SESSION["id"] = $row['id'];
                         $_SESSION["full_name"] = $row['full_name'];
                         $_SESSION["email"] = $row['email'];
                         $_SESSION["created_at"] = $row['created_at'];
+
+                        $sql = "INSERT INTO user_login (email, login, source) VALUES (?,?,?)";
+                        $stmt = $pdo->prepare($sql);
+                        if ($stmt->execute([$_SESSION["email"], $_SESSION["login"], 'Native']))
+                            $_SESSION['login_session_id'] = $pdo->lastInsertId();
                     }
                     else
-                        echo "Neplatný kód 2FA.";
+                        $alert_msg=array(
+                            "message"=>"<p>Neplatný kód 2FA.<p>",
+                            "class"=>"danger"
+                        );
                 }
                 else
-                    echo "Nesprávne prihlasovacie údaje.";
+                    $alert_msg=array(
+                        "message"=>"<p>Nesprávne prihlasovacie údaje.<p>",
+                        "class"=>"danger"
+                    );
             }
             else
-                echo "Nesprávne prihlasovacie údaje.";
+                $alert_msg=array(
+                    "message"=>"<p>Nesprávne prihlasovacie údaje.</p>",
+                    "class"=>"danger"
+                );
         }
         else
-            echo "Nastala chyba. Zopakujte prihlásenie.";
+            $alert_msg=array(
+                "message"=>"<p>Nastala chyba. Zopakujte prihlásenie.<p>",
+                "class"=>"danger"
+            );
     }
 }
 ?>

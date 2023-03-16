@@ -22,14 +22,14 @@ echo '
                             <div class="row mb-3">
                                 <div class="col-12">
                                     <label for="login" class="form-label">Prihlasovacie meno alebo email</label><br>
-                                    <input type="text" class="form-control" name="identifier" id="identifier" required>
+                                    <input type="text" class="form-control" name="identifier" id="identifier" minlength="6" maxlength="32" required>
                                 </div>
                             </div>
 
                             <div class="row mb-3">
                                 <div class="col-12">
                                     <label for="password" class="form-label">Heslo</label><br>
-                                    <input type="password" class="form-control" name="password" id="password" required>
+                                    <input type="password" class="form-control" name="password" id="password" minlength="6" maxlength="512" required>
                                 </div>
                             </div>
             
@@ -42,7 +42,7 @@ echo '
                             
                             <div class="row mb-3">
                                 <div class="col-12 col-sm-6 mb-3 mb-sm-0 d-grid">
-                                    <button type="submit" class="btn btn-success btn-lg">Prihlásiť sa</button>
+                                    <button type="submit" name="action" value="user_sign_in" class="btn btn-success btn-lg">Prihlásiť sa</button>
                                 </div>
 
                                 <div class="col-12 col-sm-6 d-grid">

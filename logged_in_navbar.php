@@ -12,6 +12,7 @@ echo '
         <ul class="dropdown-menu dropdown-menu-end">
             <li><a class="dropdown-item" href="add_person.php">Pridať športovca</a></li>
             <li><a class="dropdown-item" href="edit_person.php">Upraviť športovca</a></li>
+            <li><a class="dropdown-item" href="user_history.php">História</a></li>
             <li><a class="dropdown-item" href="logout.php">Odhlásiť sa</a></li>
         </ul>
     </div>'; 
