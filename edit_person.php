@@ -279,10 +279,10 @@ unset($pdo);
                     </div>
                     
                     <div class="row mb-3 pb-3 border-bottom">
-                        <div class="col-9 d-grid">
+                        <div class="col-12 col-sm-9 mb-2 mb-sm-0 d-grid">
                             <button type="submit" name="action" value="person_edit" class="btn btn-warning btn-lg">Upraviť športovca</button>
                         </div>
-                        <div class="col-3 d-grid">
+                        <div class="col-12 col-sm-3 d-grid">
                             <button type="submit" name="action" value="person_delete" class="btn btn-danger btn-lg">Vymazať športovca</button>
                         </div>
                     </div>
@@ -291,7 +291,7 @@ unset($pdo);
                 <h3 class="pb-3">Umiestnenia</h3>
 
                 <div class="table-responsive mb-3">
-                    <table id="table-placements" class="table">
+                    <table id="table-placements" class="table w-100">
                         <thead>
                             <tr>
                                 <td>Miesto</td>
@@ -323,10 +323,12 @@ unset($pdo);
                                         <td><input type='text' class='form-control' value='{$searched_placement['discipline']}' name='discipline' required></td>
                                         <td><input type='number' class='form-control' value='{$searched_placement['placing']}' name='placing' required></td>
                                         <td>
-                                            <input type='hidden' name='placement_id' value={$placement['id']}>
-                                            <button class='btn btn-success' name='action' value='placement_edit' type='submit'>Upraviť</button>
-                                            <a href='{$_SERVER['PHP_SELF']}?person_id={$searched_athlete['id']}' class='btn btn-primary me-3' role='button'>Zrušiť</a>
-                                            <button class='btn btn-danger' name='action' value='placement_delete' type='submit'>Vymazať</button>
+                                            <div class='d-flex'>
+                                                <input type='hidden' name='placement_id' value={$placement['id']}>
+                                                <button class='btn btn-success me-1' name='action' value='placement_edit' type='submit'>Upraviť</button>
+                                                <a href='{$_SERVER['PHP_SELF']}?person_id={$searched_athlete['id']}' class='btn btn-primary me-3' role='button'>Zrušiť</a>
+                                                <button class='btn btn-danger' name='action' value='placement_delete' type='submit'>Vymazať</button>
+                                            </div>
                                         </td>
                                     </form>
                                 </tr>";  
@@ -340,15 +342,18 @@ unset($pdo);
                                     <td>{$placement['discipline']}</td>
                                     <td>{$placement['placing']}</td>
                                     <td>
-                                        <form action='' method='get'>
-                                            <input type='hidden' name='person_id' value={$searched_athlete['id']}>
-                                            <input type='hidden' name='placement_id' value={$placement['id']}>
-                                            <button class='btn btn-warning' type='submit'>Upraviť</button>
-                                        </form>
-                                        <form action='' method='post'>
-                                            <input type='hidden' name='placement_id' value={$placement['id']}>
-                                            <button class='btn btn-danger' name='action' value='placement_delete' type='submit'>Vymazať</button>
-                                        </form>
+                                        <div class='d-flex'>
+                                            <form action='' method='get'>
+                                                <input type='hidden' name='person_id' value={$searched_athlete['id']}>
+                                                <input type='hidden' name='placement_id' value={$placement['id']}>
+                                                <button class='btn btn-warning me-1' type='submit'>Upraviť</button>
+                                            </form>
+                                        
+                                            <form action='' method='post'>
+                                                <input type='hidden' name='placement_id' value={$placement['id']}>
+                                                <button class='btn btn-danger' name='action' value='placement_delete' type='submit'>Vymazať</button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>";
                         }

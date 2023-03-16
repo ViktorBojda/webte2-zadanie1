@@ -63,7 +63,7 @@ try {
                     <div class="d-flex">
                         <?php 
                         if ((isset($_SESSION['access_token']) && $_SESSION['access_token']) || 
-                            (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true))
+                            (isset($_SESSION["logged_in"]) && $_SESSION["logged_in"] === true))
                             require_once('logged_in_navbar.php');
                         else
                             require_once('login_modal.php');

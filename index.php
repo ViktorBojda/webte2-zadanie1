@@ -16,11 +16,13 @@ try {
                 game.year,
                 CONCAT(game.city, ', ', game.country) AS location,
                 game.type,
-                placement.discipline
+                placement.discipline,
+                placement.placing
             FROM
                 person
             JOIN placement ON person.id = placement.person_id
-            JOIN game ON placement.game_id = game.id";
+            JOIN game ON placement.game_id = game.id
+            WHERE placement.placing = 1";
 
     $results = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $err) {
@@ -61,7 +63,7 @@ unset($pdo);
                     <div class="d-flex">
                         <?php 
                         if ((isset($_SESSION['access_token']) && $_SESSION['access_token']) || 
-                            (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true))
+                            (isset($_SESSION["logged_in"]) && $_SESSION["logged_in"] === true))
                             require_once('logged_in_navbar.php');
                         else
                             require_once('login_modal.php');

@@ -35,7 +35,7 @@ else {
                         $_SESSION["email"] = $row['email'];
                         $_SESSION["created_at"] = $row['created_at'];
 
-                        $sql = "INSERT INTO user_login (email, login, source) VALUES (?,?,?)";
+                        $sql = "INSERT INTO login_session (email, login, source) VALUES (?,?,?)";
                         $stmt = $pdo->prepare($sql);
                         if ($stmt->execute([$_SESSION["email"], $_SESSION["login"], 'Native']))
                             $_SESSION['login_session_id'] = $pdo->lastInsertId();

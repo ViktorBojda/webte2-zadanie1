@@ -153,7 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['action']) && $_POST['a
                     <div class="d-flex">
                         <?php
                         if ((isset($_SESSION['access_token']) && $_SESSION['access_token']) || 
-                            (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true))
+                            (isset($_SESSION["logged_in"]) && $_SESSION["logged_in"] === true))
                             exit(header('Location: index.php'));
                         else
                             require_once('login_modal.php'); 
