@@ -82,7 +82,7 @@ unset($pdo);
         <?php require_once('alert_msg.php') ?>
 
         <div class="page-content p-3">
-            <h2 class="pb-3">Slovenskí olympijskí medailisti</h2>
+            <h2 class="pb-3">Slovenskí olympijskí víťazi</h2>
 
             <div class="table-responsive">
                 <table id="table-winners" class="table w-100">
